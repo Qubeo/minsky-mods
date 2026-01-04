@@ -1,0 +1,20 @@
+{
+    "id": "csv-export",
+    "version": "0.1.0",
+    "targetMinskyVersion": "3.20.0",
+    "contributions": {
+        "menus": [
+            {
+                "targetMenu": "simulation",
+                "label": "Export CSV...",
+                "route": "simulation/csv-export"
+            }
+        ],
+        "routes": [
+            {
+                "path": "csv-export",
+                "moduleName": "CsvExportModule"
+            }
+        ]
+    }
+}

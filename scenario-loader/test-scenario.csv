@@ -1,0 +1,6 @@
+Parameter,Units,Description,Conservative,Optimistic,Ideal
+InnovationRate,1/year,Rate of innovation adoption,0.02,0.04,0.06
+ImitationRate,1/year,Rate of imitation,0.025,0.05,0.1
+ChurnRate,1,Market churn rate,0.6,0.5,0.4
+MarketClearingRate,1,Market clearing efficiency,0.5,0.75,0.9
+GrowthRate,1,Economic growth rate,0.01,0.03,0.05
