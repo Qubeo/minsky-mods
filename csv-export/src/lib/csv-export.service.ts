@@ -12,34 +12,46 @@ export interface VariableRow {
 
 @Injectable({ providedIn: 'root' })
 export class CsvExportService {
-  constructor(private electronService: ElectronService) {}
+  constructor(private electronService: ElectronService) { }
 
   async getVariables(): Promise<VariableRow[]> {
     const keys = await this.electronService.minsky.variableValues.keys();
     const rows: VariableRow[] = [];
 
-    // Filter out internal constants
+    // Filter out internal constants or system vars if necessary
     const userKeys = keys.filter(k => !k.startsWith('constant:'));
 
     // Fetch data for each variable in parallel batches
-    const batchSize = 20;
+    const batchSize = 50; // Increased batch size for better throughput
     for (let i = 0; i < userKeys.length; i += batchSize) {
       const batch = userKeys.slice(i, i + batchSize);
       const batchResults = await Promise.all(
         batch.map(async (key) => {
-          const v = this.electronService.minsky.variableValues.elem(key);
-          const [name, value, init, units, description, type] = await Promise.all([
-            v.name(),
-            v.value(),
-            v.init(),
-            v.units.str(),
-            v.detailedText(),
-            v.type(),
-          ]);
-          return { name, value, init, units, description, type };
+          try {
+            const v = this.electronService.minsky.variableValues.elem(key);
+            const [name, value, init, units, description, type] = await Promise.all([
+              v.name(),
+              v.value(),
+              v.init(),
+              v.units.str().catch(() => ''), // Handle missing units gracefully
+              v.detailedText().catch(() => ''), // Handle missing description gracefully
+              v.type(),
+            ]);
+            return {
+              name: name || key,
+              value: value !== undefined ? value : 0,
+              init: init || '',
+              units: units || '',
+              description: description || '',
+              type: type || 'variable'
+            };
+          } catch (err) {
+            console.error(`Failed to fetch variable metadata for ${key}:`, err);
+            return null;
+          }
         })
       );
-      rows.push(...batchResults);
+      rows.push(...batchResults.filter((r): r is VariableRow => r !== null));
     }
 
     return rows;
