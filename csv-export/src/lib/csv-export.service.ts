@@ -1,28 +1,28 @@
 import { Injectable } from '@angular/core';
 import { ElectronService } from '@minsky/core';
 
-export interface VariableRow {
+export interface MinskyMetadataRow {
   name: string;
-  value: number;
-  init: string;
   units: string;
   description: string;
   type: string;
+  value: number | string;
+  init: string;
 }
 
 @Injectable({ providedIn: 'root' })
 export class CsvExportService {
+  private readonly headers = ['name', 'units', 'description', 'type', 'value', 'init'];
+
   constructor(private electronService: ElectronService) { }
 
-  async getVariables(): Promise<VariableRow[]> {
+  async getVariables(): Promise<MinskyMetadataRow[]> {
     const keys = await this.electronService.minsky.variableValues.keys();
-    const rows: VariableRow[] = [];
+    const rows: MinskyMetadataRow[] = [];
 
-    // Filter out internal constants or system vars if necessary
     const userKeys = keys.filter(k => !k.startsWith('constant:'));
 
-    // Fetch data for each variable in parallel batches
-    const batchSize = 50; // Increased batch size for better throughput
+    const batchSize = 50;
     for (let i = 0; i < userKeys.length; i += batchSize) {
       const batch = userKeys.slice(i, i + batchSize);
       const batchResults = await Promise.all(
@@ -33,17 +33,17 @@ export class CsvExportService {
               v.name(),
               v.value(),
               v.init(),
-              v.units.str().catch(() => ''), // Handle missing units gracefully
-              v.detailedText().catch(() => ''), // Handle missing description gracefully
+              v.units.str().catch(() => ''),
+              v.detailedText().catch(() => ''),
               v.type(),
             ]);
             return {
               name: name || key,
-              value: value !== undefined ? value : 0,
-              init: init || '',
               units: units || '',
               description: description || '',
-              type: type || 'variable'
+              type: type || 'variable',
+              value: value !== undefined ? value : 0,
+              init: init || '',
             };
           } catch (err) {
             console.error(`Failed to fetch variable metadata for ${key}:`, err);
@@ -51,20 +51,18 @@ export class CsvExportService {
           }
         })
       );
-      rows.push(...batchResults.filter((r): r is VariableRow => r !== null));
+      rows.push(...batchResults.filter((r): r is MinskyMetadataRow => r !== null));
     }
 
     return rows;
   }
 
-  toCsv(rows: VariableRow[]): string {
-    const headers = ['name', 'value', 'init', 'units', 'description', 'type'];
-    const lines: string[] = [headers.join(',')];
+  toCsv(rows: MinskyMetadataRow[]): string {
+    const lines: string[] = [this.headers.join(',')];
 
     for (const row of rows) {
-      const values = headers.map((h) => {
-        const val = row[h as keyof VariableRow];
-        // Escape quotes and wrap in quotes if contains comma or quote
+      const values = this.headers.map((h) => {
+        const val = row[h as keyof MinskyMetadataRow];
         const str = String(val ?? '');
         if (str.includes(',') || str.includes('"') || str.includes('\n')) {
           return `"${str.replace(/"/g, '""')}"`;

@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { CsvExportService, VariableRow } from './csv-export.service';
+import { CsvExportService, MinskyMetadataRow } from './csv-export.service';
 
 @Component({
   selector: 'minsky-csv-export',
@@ -27,7 +27,7 @@ import { CsvExportService, VariableRow } from './csv-export.service';
       </div>
 
       <div class="info-footer">
-        <small>Variables include: name, value, initial value, units, description, and type.</small>
+        <small>Fields: name, units, description, type, value, init.</small>
       </div>
     </div>
   `,
@@ -112,7 +112,7 @@ export class CsvExportComponent {
   loading = false;
   error = '';
   variableCount = 0;
-  private variables: VariableRow[] = [];
+  private variables: MinskyMetadataRow[] = [];
 
   constructor(private csvService: CsvExportService) { }
 

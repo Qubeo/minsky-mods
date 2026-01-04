@@ -7,7 +7,12 @@
             {
                 "targetMenu": "simulation",
                 "label": "Export CSV...",
-                "route": "simulation/csv-export"
+                "route": "simulation/csv-export",
+                "window": {
+                    "width": 600,
+                    "height": 500,
+                    "title": "Export CSV"
+                }
             }
         ],
         "routes": [
