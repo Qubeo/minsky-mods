@@ -1,31 +1,21 @@
 {
-    "id": "scenario-loader",
-    "version": "1.0.0",
-    "targetMinskyVersion": "3.20.0",
-    "contributions": {
-        "menus": [
-            {
-                "targetMenu": "simulation",
-                "label": "Load Scenario...",
-                "route": "simulation/load-scenario",
-                "window": {
-                    "width": 800,
-                    "height": 600,
-                    "title": "Load Scenario"
-                }
-            }
-        ],
-        "routes": [
-            {
-                "path": "load-scenario",
-                "moduleName": "ScenarioLoaderModule"
-            }
-        ],
-        "ipc": [
-            {
-                "channel": "read-file-text",
-                "description": "Reads a text file from the filesystem. Required for large CSV imports."
-            }
-        ]
-    }
+  "id": "scenario-loader",
+  "name": "Scenario Loader",
+  "version": "1.1.0",
+  "contributes": {
+    "menus": {
+      "items": [
+        { "menu": "simulation", "label": "Load Scenario...", "command": "scenario-loader.open" }
+      ]
+    },
+    "commands": [
+      { "id": "scenario-loader.open", "route": "load-scenario", "window": { "width": 800, "height": 600, "title": "Load Scenario" } }
+    ],
+    "routes": [
+      { "path": "load-scenario", "module": "ScenarioLoaderModule" }
+    ],
+    "ipc": [
+      { "channel": "read-file-text" }
+    ]
+  }
 }

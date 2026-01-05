@@ -1,0 +1,46 @@
+name,units,description,type,value,init
+:ActiveScenario,,,parameter,1,1
+:ActiveScenarioParams,,,flow,2,
+:AdjustmentTime,yr,,parameter,0.25,0.25
+:AvgMaturity,yr,,parameter,3,3
+:BondPurchase,EUR yr^-1,,flow,3200,100
+BondsYear1,EUR,,integral,0,0
+BondsYear2,EUR,,integral,0,0
+BondsYear3,EUR,,integral,0,0
+::ChurnRate,,,parameter,0,
+:CouponPayment,EUR yr^-1,,variable,2.5,
+:CouponRate,yr^-1,,parameter,,
+:Decay,,,flow,-100,
+:DecayRate,yr^-1,,parameter,-0.1,-0.1
+:DesiredPurchase,EUR yr^-1,,flow,3200,
+:FaucetFlow,Liters yr^-1,,flow,5,5
+:FaucetOpen,,,parameter,0.5,0.5
+:Flow1to2,EUR yr^-1,,flow,,
+:Flow2to3,EUR yr^-1,,flow,,
+:GrowthRate,,,parameter,0,
+::ImitationRate,year^-1,,parameter,,
+:InflowMax,,,parameter,10,10
+:InitBonds,EUR,,parameter,,0
+:InnovationRate,year^-1,,flow,0.06,0.06
+:InnovationrateLarge,yr^-1,,parameter,0,
+:InnovationrateMicro,yr^-1,,parameter,0,
+:InnovationrateMini,yr^-1,,parameter,0,
+:InvBondsHeld,EUR,,stock,50,50
+:InvCash,,,variable,,
+:InvWithdrawal,EUR yr^-1,,flow,799.9999999999998,
+:IssBondsOwed,,,stock,0,0
+:IssCash,EUR,,stock,0,0
+:MarketClearingRate,,,parameter,0.9,
+:MaturingBonds,EUR yr^-1,,variable,0,
+:MaturityExpDecay[OLD],EUR yr^-1,,flow,16.666666666666668,
+:OutflowMax,Liters yr^-1,,parameter,-10,-10
+:ReinvestmentRate,,,variable,,0.8
+:Scenarios,,,parameter,1,
+:SinkFlow,Liters yr^-1,,variable,,-5
+:SinkOpen,,,parameter,0.5,
+:StageDuration,yr,,parameter,1,
+:Tau,yr,,parameter,10,10
+:TotalBondsOutstanding,EUR,,flow,0,BondsYear1 + BondsYear2 + BondsYear3
+:TotalCash,EUR,,flow,1000,
+Water,Liters,,integral,1000,1000
+:WaterInitial,,,variable,1000,

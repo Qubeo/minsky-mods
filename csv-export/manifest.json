@@ -1,25 +1,18 @@
 {
-    "id": "csv-export",
-    "version": "0.1.0",
-    "targetMinskyVersion": "3.20.0",
-    "contributions": {
-        "menus": [
-            {
-                "targetMenu": "simulation",
-                "label": "Export CSV...",
-                "route": "simulation/csv-export",
-                "window": {
-                    "width": 600,
-                    "height": 500,
-                    "title": "Export CSV"
-                }
-            }
-        ],
-        "routes": [
-            {
-                "path": "csv-export",
-                "moduleName": "CsvExportModule"
-            }
-        ]
-    }
+  "id": "csv-export",
+  "name": "CSV Export",
+  "version": "0.2.0",
+  "contributes": {
+    "menus": {
+      "items": [
+        { "menu": "simulation", "label": "Export CSV...", "command": "csv-export.open" }
+      ]
+    },
+    "commands": [
+      { "id": "csv-export.open", "route": "csv-export", "window": { "width": 600, "height": 500, "title": "Export CSV" } }
+    ],
+    "routes": [
+      { "path": "csv-export", "module": "CsvExportModule" }
+    ]
+  }
 }

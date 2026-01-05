@@ -1,0 +1,24 @@
+{
+  "id": "llm-assist",
+  "name": "AI Assistant",
+  "version": "0.2.0",
+  "contributes": {
+    "menus": {
+      "topLevel": [
+        { "id": "ai", "label": "AI", "after": "options" }
+      ],
+      "items": [
+        { "menu": "ai", "label": "AI Assist...", "command": "llm-assist.open" }
+      ]
+    },
+    "commands": [
+      { "id": "llm-assist.open", "route": "llm-assist", "window": { "width": 800, "height": 600, "title": "AI Assistant" } }
+    ],
+    "routes": [
+      { "path": "llm-assist", "module": "LlmAssistModule" }
+    ],
+    "ipc": [
+      { "channel": "llm-generate" }
+    ]
+  }
+}
