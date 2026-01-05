@@ -15,6 +15,25 @@ import { LlmAssistService, SelectionData } from './llm-assist.service';
           {{ loading ? '...' : '↻' }} Refresh Selection
         </button>
       </header>
+
+      <section class="api-key-panel" *ngIf="!apiKey">
+        <h2>⚙️ API Configuration</h2>
+        <input 
+          type="password" 
+          class="api-key-input"
+          [(ngModel)]="apiKeyInput"
+          placeholder="Enter Anthropic API key (sk-ant-...)">
+        <button class="save-key-btn" (click)="saveApiKey()" [disabled]="!apiKeyInput.trim()">
+          Save API Key
+        </button>
+      </section>
+
+      <section class="api-key-panel saved" *ngIf="apiKey">
+        <div class="key-status">
+          <span>✓ API Key configured</span>
+          <button class="change-key-btn" (click)="changeApiKey()">Change</button>
+        </div>
+      </section>
       
       <section class="selection-panel">
         <h2>Selected Elements</h2>
@@ -35,7 +54,7 @@ import { LlmAssistService, SelectionData } from './llm-assist.service';
           [(ngModel)]="prompt" 
           placeholder="Ask about the selected model elements..."
           (keydown.enter)="onEnter($event)"></textarea>
-        <button class="send-btn" [disabled]="loading || !prompt.trim()" (click)="askAi()">
+        <button class="send-btn" [disabled]="loading || !prompt.trim() || !apiKey" (click)="askAi()">
           {{ loading ? 'Thinking...' : 'Ask AI' }}
         </button>
       </section>
@@ -106,13 +125,91 @@ import { LlmAssistService, SelectionData } from './llm-assist.service';
     }
 
     .selection-panel {
-      flex: 0 0 auto;
+      flex: 1 1 auto;
+      display: flex;
+      flex-direction: column;
+      min-height: 200px;
       border-bottom: 1px solid #0f3460;
     }
 
+    .api-key-panel {
+      padding: 16px 20px;
+      background: #16213e;
+      border-bottom: 1px solid #0f3460;
+    }
+
+    .api-key-panel.saved {
+      background: #1a2332;
+    }
+
+    .api-key-input {
+      width: 70%;
+      background: #0f0f1a;
+      border: 1px solid #0f3460;
+      border-radius: 4px;
+      color: #eee;
+      font-family: inherit;
+      font-size: 0.9rem;
+      padding: 10px 12px;
+      margin-right: 12px;
+    }
+
+    .api-key-input:focus {
+      outline: none;
+      border-color: #e94560;
+    }
+
+    .save-key-btn {
+      background: #2ecc71;
+      border: none;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.2s;
+    }
+
+    .save-key-btn:hover:not(:disabled) {
+      background: #27ae60;
+    }
+
+    .save-key-btn:disabled {
+      background: #444;
+      cursor: not-allowed;
+    }
+
+    .key-status {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .key-status span {
+      color: #2ecc71;
+      font-size: 0.9rem;
+    }
+
+    .change-key-btn {
+      background: transparent;
+      border: 1px solid #0f3460;
+      color: #e94560;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.8rem;
+      transition: all 0.2s;
+    }
+
+    .change-key-btn:hover {
+      background: #0f3460;
+    }
+
     .selection-text {
+      flex: 1;
       width: 100%;
-      height: 120px;
+      min-height: 180px;
       background: #0f0f1a;
       border: 1px solid #0f3460;
       border-radius: 4px;
@@ -120,7 +217,7 @@ import { LlmAssistService, SelectionData } from './llm-assist.service';
       font-family: inherit;
       font-size: 0.8rem;
       padding: 12px;
-      resize: none;
+      resize: vertical;
     }
 
     .item-count {
@@ -196,11 +293,37 @@ export class LlmAssistComponent implements OnInit {
     prompt = '';
     response = '';
     loading = false;
+    apiKey = '';
+    apiKeyInput = '';
 
     constructor(private llmService: LlmAssistService) {}
 
     ngOnInit() {
+        this.loadApiKey();
         this.loadSelection();
+    }
+
+    loadApiKey() {
+        const stored = localStorage.getItem('llm-assist-api-key');
+        if (stored) {
+            this.apiKey = stored;
+            this.llmService.setApiKey(stored);
+        }
+    }
+
+    saveApiKey() {
+        if (this.apiKeyInput.trim()) {
+            this.apiKey = this.apiKeyInput.trim();
+            localStorage.setItem('llm-assist-api-key', this.apiKey);
+            this.llmService.setApiKey(this.apiKey);
+            this.apiKeyInput = '';
+        }
+    }
+
+    changeApiKey() {
+        this.apiKey = '';
+        this.apiKeyInput = '';
+        localStorage.removeItem('llm-assist-api-key');
     }
 
     async loadSelection() {
@@ -223,7 +346,7 @@ export class LlmAssistComponent implements OnInit {
     }
 
     async askAi() {
-        if (!this.prompt.trim() || this.loading) return;
+        if (!this.prompt.trim() || this.loading || !this.apiKey) return;
 
         this.loading = true;
         this.response = '';
@@ -231,7 +354,7 @@ export class LlmAssistComponent implements OnInit {
         try {
             this.response = await this.llmService.queryLlm(this.prompt, this.selectionText);
         } catch (e) {
-            this.response = `Error: ${e}`;
+            this.response = `Error: ${e instanceof Error ? e.message : String(e)}`;
         } finally {
             this.loading = false;
         }

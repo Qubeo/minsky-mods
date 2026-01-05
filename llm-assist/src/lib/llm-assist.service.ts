@@ -23,8 +23,13 @@ export interface SelectionData {
 
 @Injectable({ providedIn: 'root' })
 export class LlmAssistService {
+    private apiKey = '';
 
     constructor(private electron: ElectronService) {}
+
+    setApiKey(key: string) {
+        this.apiKey = key;
+    }
 
     /**
      * Fetches the current canvas selection with rich metadata
@@ -163,11 +168,37 @@ export class LlmAssistService {
     }
 
     /**
-     * Stub for future LLM API integration
+     * Query Anthropic Claude API via IPC (to avoid CORS)
      */
     async queryLlm(prompt: string, context: string): Promise<string> {
-        console.log('[LLM-Assist] Query:', { prompt, contextLength: context.length });
-        
-        return `[Stub Response]\n\nYou asked: "${prompt}"\n\nContext:\n${context}\n\nIn a real implementation, this would query an LLM API.`;
+        if (!this.apiKey) {
+            throw new Error('API key not configured');
+        }
+
+        const systemPrompt = `You are an expert in system dynamics modeling and the Minsky software. 
+You help users understand and analyze their economic models.
+
+The user has selected the following elements from their model:
+
+${context}
+
+Provide clear, concise analysis and answer their questions about this model section.`;
+
+        try {
+            const response = await this.electron.invoke('llm-generate', {
+                apiKey: this.apiKey,
+                systemPrompt,
+                userPrompt: prompt
+            });
+
+            if (response.error) {
+                throw new Error(response.error);
+            }
+
+            return response.text;
+        } catch (e) {
+            console.error('[LLM-Assist] API Error:', e);
+            throw e;
+        }
     }
 }
