@@ -1,8 +1,12 @@
 import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { LlmAssistService, SelectionItem } from './llm-assist.service';
 
 @Component({
     selector: 'minsky-llm-assist',
+    standalone: true,
+    imports: [CommonModule, FormsModule],
     template: `
     <div class="container">
       <header>
