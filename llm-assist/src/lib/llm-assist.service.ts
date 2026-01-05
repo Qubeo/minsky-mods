@@ -31,6 +31,31 @@ export class LlmAssistService {
         this.apiKey = key;
     }
 
+    async saveApiKey(key: string): Promise<void> {
+        try {
+            await this.electron.invoke('llm-save-api-key', key);
+        } catch (e) {
+            console.error('Failed to save API key:', e);
+        }
+    }
+
+    async loadApiKey(): Promise<string | null> {
+        try {
+            return await this.electron.invoke('llm-load-api-key');
+        } catch (e) {
+            console.error('Failed to load API key:', e);
+            return null;
+        }
+    }
+
+    async clearApiKey(): Promise<void> {
+        try {
+            await this.electron.invoke('llm-clear-api-key');
+        } catch (e) {
+            console.error('Failed to clear API key:', e);
+        }
+    }
+
     /**
      * Fetches the current canvas selection with rich metadata
      */

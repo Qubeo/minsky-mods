@@ -12,13 +12,16 @@
       ]
     },
     "commands": [
-      { "id": "llm-assist.open", "route": "llm-assist", "window": { "width": 800, "height": 600, "title": "AI Assistant" } }
+      { "id": "llm-assist.open", "route": "llm-assist", "window": { "width": 900, "height": 750, "title": "AI Assistant" } }
     ],
     "routes": [
       { "path": "llm-assist", "module": "LlmAssistModule" }
     ],
     "ipc": [
-      { "channel": "llm-generate" }
+      { "channel": "llm-generate" },
+      { "channel": "llm-save-api-key" },
+      { "channel": "llm-load-api-key" },
+      { "channel": "llm-clear-api-key" }
     ]
   }
 }

@@ -8,283 +8,157 @@ import { LlmAssistService, SelectionData } from './llm-assist.service';
     standalone: true,
     imports: [CommonModule, FormsModule],
     template: `
-    <div class="container">
-      <header>
+    <div class="app">
+      <div class="header">
         <h1>AI Assistant</h1>
-        <button class="refresh-btn" (click)="loadSelection()" [disabled]="loading">
-          {{ loading ? '...' : '↻' }} Refresh Selection
-        </button>
-      </header>
+        <button (click)="loadSelection()" [disabled]="loading">↻ Refresh</button>
+      </div>
 
-      <section class="api-key-panel" *ngIf="!apiKey">
-        <h2>⚙️ API Configuration</h2>
-        <input 
-          type="password" 
-          class="api-key-input"
-          [(ngModel)]="apiKeyInput"
-          placeholder="Enter Anthropic API key (sk-ant-...)">
-        <button class="save-key-btn" (click)="saveApiKey()" [disabled]="!apiKeyInput.trim()">
-          Save API Key
-        </button>
-      </section>
+      <div class="content">
+        <div class="box" *ngIf="!apiKey">
+          <label>API Key</label>
+          <input type="password" [(ngModel)]="apiKeyInput" placeholder="sk-ant-...">
+          <button (click)="saveApiKey()" [disabled]="!apiKeyInput.trim()">Save API Key</button>
+        </div>
 
-      <section class="api-key-panel saved" *ngIf="apiKey">
-        <div class="key-status">
+        <div class="box success" *ngIf="apiKey">
           <span>✓ API Key configured</span>
-          <button class="change-key-btn" (click)="changeApiKey()">Change</button>
+          <button (click)="changeApiKey()">Change</button>
         </div>
-      </section>
-      
-      <section class="selection-panel">
-        <h2>Selected Elements</h2>
-        <textarea 
-          class="selection-text" 
-          [value]="selectionText" 
-          readonly
-          placeholder="Select items on the canvas, then click Refresh Selection"></textarea>
-        <div class="item-count" *ngIf="selectionData.items.length > 0 || selectionData.wires.length > 0">
-          {{ selectionData.items.length }} item(s), {{ selectionData.wires.length }} wire(s) selected
+
+        <div class="box">
+          <label>Selected Elements ({{ selectionData.items.length }})</label>
+          <textarea readonly [value]="selectionText" placeholder="Select items, click Refresh"></textarea>
         </div>
-      </section>
 
-      <section class="prompt-panel">
-        <h2>Ask AI</h2>
-        <textarea 
-          class="prompt-input"
-          [(ngModel)]="prompt" 
-          placeholder="Ask about the selected model elements..."
-          (keydown.enter)="onEnter($event)"></textarea>
-        <button class="send-btn" [disabled]="loading || !prompt.trim() || !apiKey" (click)="askAi()">
-          {{ loading ? 'Thinking...' : 'Ask AI' }}
-        </button>
-      </section>
+        <div class="box">
+          <label>Your Question</label>
+          <textarea [(ngModel)]="prompt" placeholder="Ask about the model..." (keydown.enter)="onEnter($event)"></textarea>
+          <button (click)="askAi()" [disabled]="loading || !prompt.trim() || !apiKey">
+            {{ loading ? 'Thinking...' : 'Ask AI' }}
+          </button>
+        </div>
 
-      <section class="response-panel" *ngIf="response">
-        <h2>Response</h2>
-        <div class="response-text">{{ response }}</div>
-      </section>
+        <div class="box" *ngIf="response">
+          <label>Response</label>
+          <div class="response">{{ response }}</div>
+        </div>
+      </div>
     </div>
   `,
     styles: [`
-    .container {
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    .app {
+      height: 100vh;
+      background: #1e1e1e;
+      color: #e0e0e0;
+      font-family: system-ui, sans-serif;
       display: flex;
       flex-direction: column;
-      height: 100vh;
-      background: #1a1a2e;
-      color: #eee;
-      font-family: 'JetBrains Mono', 'Fira Code', monospace;
     }
 
-    header {
+    .header {
+      background: #2d2d2d;
+      padding: 12px 20px;
+      border-bottom: 1px solid #444;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 16px 20px;
-      background: #16213e;
-      border-bottom: 1px solid #0f3460;
     }
 
-    h1 {
-      margin: 0;
-      font-size: 1.25rem;
-      font-weight: 500;
-      color: #e94560;
+    h1 { font-size: 1.1rem; color: #ff79c6; }
+
+    .content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
     }
 
-    h2 {
-      margin: 0 0 12px 0;
-      font-size: 0.85rem;
-      font-weight: 600;
+    .box {
+      background: #2d2d2d;
+      padding: 16px;
+      margin-bottom: 16px;
+      border-radius: 8px;
+      border: 1px solid #444;
+    }
+
+    .box.success {
+      background: #1e3a2d;
+      border-color: #50fa7b;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .box.success span { color: #50fa7b; }
+
+    label {
+      display: block;
+      font-size: 0.7rem;
+      color: #888;
       text-transform: uppercase;
       letter-spacing: 0.05em;
-      color: #888;
+      margin-bottom: 8px;
     }
 
-    .refresh-btn {
-      background: transparent;
-      border: 1px solid #0f3460;
-      color: #e94560;
-      padding: 8px 16px;
-      border-radius: 4px;
-      cursor: pointer;
-      font-family: inherit;
-      transition: all 0.2s;
-    }
-
-    .refresh-btn:hover:not(:disabled) {
-      background: #0f3460;
-    }
-
-    .refresh-btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-
-    section {
-      padding: 16px 20px;
-    }
-
-    .selection-panel {
-      flex: 1 1 auto;
-      display: flex;
-      flex-direction: column;
-      min-height: 200px;
-      border-bottom: 1px solid #0f3460;
-    }
-
-    .api-key-panel {
-      padding: 16px 20px;
-      background: #16213e;
-      border-bottom: 1px solid #0f3460;
-    }
-
-    .api-key-panel.saved {
-      background: #1a2332;
-    }
-
-    .api-key-input {
-      width: 70%;
-      background: #0f0f1a;
-      border: 1px solid #0f3460;
-      border-radius: 4px;
-      color: #eee;
-      font-family: inherit;
-      font-size: 0.9rem;
-      padding: 10px 12px;
-      margin-right: 12px;
-    }
-
-    .api-key-input:focus {
-      outline: none;
-      border-color: #e94560;
-    }
-
-    .save-key-btn {
-      background: #2ecc71;
-      border: none;
-      color: white;
-      padding: 10px 20px;
-      border-radius: 4px;
-      cursor: pointer;
-      font-family: inherit;
-      transition: all 0.2s;
-    }
-
-    .save-key-btn:hover:not(:disabled) {
-      background: #27ae60;
-    }
-
-    .save-key-btn:disabled {
-      background: #444;
-      cursor: not-allowed;
-    }
-
-    .key-status {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .key-status span {
-      color: #2ecc71;
-      font-size: 0.9rem;
-    }
-
-    .change-key-btn {
-      background: transparent;
-      border: 1px solid #0f3460;
-      color: #e94560;
-      padding: 6px 12px;
-      border-radius: 4px;
-      cursor: pointer;
-      font-family: inherit;
-      font-size: 0.8rem;
-      transition: all 0.2s;
-    }
-
-    .change-key-btn:hover {
-      background: #0f3460;
-    }
-
-    .selection-text {
-      flex: 1;
+    input, textarea {
       width: 100%;
-      min-height: 180px;
-      background: #0f0f1a;
-      border: 1px solid #0f3460;
-      border-radius: 4px;
-      color: #aaa;
-      font-family: inherit;
-      font-size: 0.8rem;
-      padding: 12px;
+      background: #1a1a1a;
+      border: 1px solid #444;
+      color: #e0e0e0;
+      padding: 10px;
+      border-radius: 6px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9rem;
+      margin-bottom: 10px;
+    }
+
+    input:focus, textarea:focus {
+      outline: none;
+      border-color: #ff79c6;
+    }
+
+    textarea {
+      min-height: 120px;
       resize: vertical;
+      line-height: 1.4;
     }
 
-    .item-count {
-      margin-top: 8px;
-      font-size: 0.75rem;
-      color: #666;
-    }
-
-    .prompt-panel {
-      flex: 0 0 auto;
-      border-bottom: 1px solid #0f3460;
-    }
-
-    .prompt-input {
-      width: 100%;
-      height: 80px;
-      background: #0f0f1a;
-      border: 1px solid #0f3460;
-      border-radius: 4px;
-      color: #eee;
-      font-family: inherit;
-      font-size: 0.9rem;
+    .response {
+      background: #1a1a1a;
+      border: 1px solid #444;
       padding: 12px;
-      resize: none;
-      margin-bottom: 12px;
-    }
-
-    .prompt-input:focus {
-      outline: none;
-      border-color: #e94560;
-    }
-
-    .send-btn {
-      background: #e94560;
-      border: none;
-      color: white;
-      padding: 10px 24px;
-      border-radius: 4px;
-      cursor: pointer;
-      font-family: inherit;
-      font-weight: 500;
-      transition: all 0.2s;
-    }
-
-    .send-btn:hover:not(:disabled) {
-      background: #ff6b6b;
-    }
-
-    .send-btn:disabled {
-      background: #444;
-      cursor: not-allowed;
-    }
-
-    .response-panel {
-      flex: 1;
+      border-radius: 6px;
+      white-space: pre-wrap;
+      line-height: 1.5;
+      font-size: 0.9rem;
+      max-height: 400px;
       overflow-y: auto;
     }
 
-    .response-text {
-      background: #0f0f1a;
-      border: 1px solid #0f3460;
-      border-radius: 4px;
-      padding: 16px;
-      font-size: 0.9rem;
-      line-height: 1.6;
-      white-space: pre-wrap;
+    button {
+      background: #ff79c6;
+      color: #1e1e1e;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 0.85rem;
     }
+
+    button:hover:not(:disabled) { background: #ff92d0; }
+    button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .box.success button {
+      background: transparent;
+      border: 1px solid #50fa7b;
+      color: #50fa7b;
+      padding: 4px 12px;
+    }
+
+    .box.success button:hover { background: #50fa7b; color: #1e1e1e; }
   `]
 })
 export class LlmAssistComponent implements OnInit {
@@ -303,27 +177,31 @@ export class LlmAssistComponent implements OnInit {
         this.loadSelection();
     }
 
-    loadApiKey() {
-        const stored = localStorage.getItem('llm-assist-api-key');
-        if (stored) {
-            this.apiKey = stored;
-            this.llmService.setApiKey(stored);
+    async loadApiKey() {
+        try {
+            const stored = await this.llmService.loadApiKey();
+            if (stored) {
+                this.apiKey = stored;
+                this.llmService.setApiKey(stored);
+            }
+        } catch (e) {
+            console.warn('Failed to load API key:', e);
         }
     }
 
-    saveApiKey() {
+    async saveApiKey() {
         if (this.apiKeyInput.trim()) {
             this.apiKey = this.apiKeyInput.trim();
-            localStorage.setItem('llm-assist-api-key', this.apiKey);
+            await this.llmService.saveApiKey(this.apiKey);
             this.llmService.setApiKey(this.apiKey);
             this.apiKeyInput = '';
         }
     }
 
-    changeApiKey() {
+    async changeApiKey() {
         this.apiKey = '';
         this.apiKeyInput = '';
-        localStorage.removeItem('llm-assist-api-key');
+        await this.llmService.clearApiKey();
     }
 
     async loadSelection() {
