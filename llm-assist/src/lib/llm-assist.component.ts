@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { LlmAssistService, SelectionItem } from './llm-assist.service';
+import { LlmAssistService, SelectionData } from './llm-assist.service';
 
 @Component({
     selector: 'minsky-llm-assist',
@@ -23,8 +23,8 @@ import { LlmAssistService, SelectionItem } from './llm-assist.service';
           [value]="selectionText" 
           readonly
           placeholder="Select items on the canvas, then click Refresh Selection"></textarea>
-        <div class="item-count" *ngIf="selectedItems.length > 0">
-          {{ selectedItems.length }} item(s) selected
+        <div class="item-count" *ngIf="selectionData.items.length > 0 || selectionData.wires.length > 0">
+          {{ selectionData.items.length }} item(s), {{ selectionData.wires.length }} wire(s) selected
         </div>
       </section>
 
@@ -191,7 +191,7 @@ import { LlmAssistService, SelectionItem } from './llm-assist.service';
   `]
 })
 export class LlmAssistComponent implements OnInit {
-    selectedItems: SelectionItem[] = [];
+    selectionData: SelectionData = { items: [], wires: [] };
     selectionText = '';
     prompt = '';
     response = '';
@@ -206,8 +206,8 @@ export class LlmAssistComponent implements OnInit {
     async loadSelection() {
         this.loading = true;
         try {
-            this.selectedItems = await this.llmService.getSelection();
-            this.selectionText = this.llmService.formatSelectionAsText(this.selectedItems);
+            this.selectionData = await this.llmService.getSelection();
+            this.selectionText = this.llmService.formatSelectionAsText(this.selectionData);
         } catch (e) {
             this.selectionText = `Error loading selection: ${e}`;
         } finally {
