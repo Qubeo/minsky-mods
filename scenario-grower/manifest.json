@@ -1,0 +1,26 @@
+{
+  "id": "scenario-grower",
+  "name": "Scenario Grower",
+  "version": "2.0.0",
+  "contributes": {
+    "menus": {
+      "items": [
+        { "menu": "simulation", "label": "Grow Scenario Infrastructure...", "command": "scenario-grower.grow" },
+        { "menu": "simulation", "label": "Wire Scenario Parameters...", "command": "scenario-grower.wire" }
+      ]
+    },
+    "commands": [
+      { "id": "scenario-grower.grow", "route": "grow-scenario", "window": { "width": 800, "height": 600, "title": "Grow Scenario Infrastructure" } },
+      { "id": "scenario-grower.wire", "route": "wire-scenario", "window": { "width": 700, "height": 700, "title": "Wire Scenario Parameters" } }
+    ],
+    "routes": [
+      { "path": "grow-scenario", "module": "ScenarioGrowerModule" },
+      { "path": "wire-scenario", "module": "ScenarioWiringModule" }
+    ],
+    "ipc": [
+      { "channel": "read-file-text" },
+      { "channel": "write-temp-file" },
+      { "channel": "delete-file" }
+    ]
+  }
+}

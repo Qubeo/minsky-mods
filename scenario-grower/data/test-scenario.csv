@@ -1,0 +1,5 @@
+name,type,units,description,init,CON,OPT,IDL
+InnovationRateMicro,parameter,1/year,Micro-level innovation rate,,0.02,0.04,0.06
+ImitationRateMicro,parameter,1/year,Imitation adoption rate,,0.025,0.05,0.1
+InnovationRateInvestors,parameter,1/year,Investor innovation rate,,0.0005,0.001,0.002
+ImitationRateInvestors,parameter,1/year,Investor imitation rate,,0.15,0.2,0.3
