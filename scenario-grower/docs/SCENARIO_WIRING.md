@@ -42,12 +42,15 @@ Clean up temp file
 
 ## Wiring Logic
 
-For each parameter, the system creates:
+### Group Inputs/Outputs
 
-1. **Index Variable** (`idx_ParamName`) - Constant value representing the column index
-2. **First Gather Operation** (axis: `name`) - Extracts the row from the tensor
-3. **Second Gather Operation** (axis: `attribute`) - Extracts the column from the row
-4. **Output Variable** (`ParamName`) - Flow variable that receives the final value
+The generated group has three **input variables** (exposed on the left boundary):
+- **ScenarioTensor** - The source tensor containing all parameter data
+- **SelectedScenario** - User-controlled index (0 to N-1) selecting which scenario to extract
+- **ScenarioOffset** - Automatically calculated offset to skip metadata columns in the tensor
+
+The output variables (exposed on the right boundary) are the parameter variables:
+- **ParamName** (one for each parameter) - Flow variables containing extracted values
 
 ### Port Structure
 
@@ -63,17 +66,42 @@ For each parameter, the system creates:
   - Port 0: Output
   - Port 1: Input (for receiving values)
 
+- **Add Operation**: 3 ports
+  - Port 0: Output (sum)
+  - Port 1: Input (first operand)
+  - Port 2: Input (second operand)
+
 ### Wiring Connections
 
-For each parameter row:
+For each parameter row, the system wires:
 
 ```
-Tensor (output) → Gather Name (data input)
-Index Constant (output) → Gather Name (index input)
-Gather Name (output) → Gather Attribute (data input)
-SelectedScenario (output) → Gather Attribute (index input)
-Gather Attribute (output) → Output Variable (input)
+ScenarioTensor (output)
+  → Gather Name (data input, port 1)
+
+idx_ParamName (output, constant = parameter column index)
+  → Gather Name (index input, port 2)
+
+Gather Name (output)
+  → Gather Attribute (data input, port 1)
+
+SelectedScenario + ScenarioOffset (via add operation output)
+  → Gather Attribute (index input, port 2)
+
+Gather Attribute (output)
+  → ParamName (input port, port 1)
 ```
+
+### Offset Calculation
+
+The `ScenarioOffset` variable is critical for handling CSV imports that include metadata rows:
+- When a CSV is imported with columns like `[name, type, units, description, init, CON, OPT, IDL]`
+- The tensor's "attribute" dimension includes all these columns
+- Actual scenario data (CON, OPT, IDL) may start at a non-zero index
+- `ScenarioOffset = Total Attributes - Number of Selected Scenarios`
+- The add operation calculates: `Actual Index = SelectedScenario + ScenarioOffset`
+
+This allows users to control scenario selection with a simple 0-based index while the system internally maps to the correct column positions.
 
 ## Component: ScenarioWiringComponent
 
@@ -159,45 +187,61 @@ State is reset at the start of each `generateMinskyXML()` call.
 
 ### Methods
 
-#### `generateMinskyXML(tensorName, paramNames, scenarioNames): string`
+#### `generateMinskyXML(tensorName, paramNames, scenarioNames, paramAxisName, scenarioAxisName, totalAttributeCount): string`
 
 Main method that generates the complete Minsky XML document.
 
 **Parameters:**
 - `tensorName: string` - Name of the tensor variable (without colon prefix)
 - `paramNames: string[]` - Array of parameter names (column names)
-- `scenarioNames: string[]` - Array of scenario/attribute names (row names, used for count/description)
+- `scenarioNames: string[]` - Array of scenario/attribute names to use (row names, determines scenario count)
+- `paramAxisName: string` - Actual axis name for parameters in the tensor (default: `'name'`)
+- `scenarioAxisName: string` - Actual axis name for scenarios in the tensor (default: `'attribute'`)
+- `totalAttributeCount: number` - Total number of attributes in the tensor including metadata (used to calculate offset)
 
 **Returns:**
-Complete XML string in Minsky .mky format
+Complete XML string in Minsky .mky format with proper group input/output boundaries
 
 **Process:**
-1. Resets internal state (idCounter, wires, items)
-2. Creates input variables:
-   - Tensor variable (`:${tensorName}`) - positioned at center-left
-   - SelectedScenario variable (`:SelectedScenario`) - positioned above, with tooltip showing scenario range
-3. For each parameter:
-   - Creates index variable (`:idx_${paramName}`) with initial value = index
-   - Creates first gather operation (axis: `name`) at x+400
-   - Creates second gather operation (axis: `attribute`) at x+600
-   - Creates output flow variable (`:${paramName}`) at x+800
+1. Resets internal state (idCounter, wires, items, inVariableIds, outVariableIds)
+2. Calculates `scenarioOffset = totalAttributeCount - scenarioNames.length`
+3. Creates input variables (marked on left boundary):
+   - Tensor variable (`:${tensorName}`) - data source
+   - SelectedScenario variable (`:SelectedScenario`) - user-controlled scenario selector
+   - ScenarioOffset variable (`:ScenarioOffset`) - calculated offset to skip metadata
+4. Creates add operation to compute adjusted scenario index: `SelectedScenario + ScenarioOffset`
+5. For each parameter:
+   - Creates index variable (`:idx_${paramName}`) with initial value = parameter column index
+   - Creates first gather operation (axis: dynamic, from `paramAxisName`)
+   - Creates second gather operation (axis: dynamic, from `scenarioAxisName`)
+   - Creates output flow variable (`:${paramName}`) - marked on right boundary
    - Creates all 5 wire connections
-4. Constructs final XML with proper structure:
+6. Constructs final XML with group boundaries:
    ```xml
    <?xml version="1.0"?>
    <Minsky xmlns="http://minsky.sf.net/minsky">
      <schemaVersion>3</schemaVersion>
      <wires>...</wires>
      <items>...</items>
+     <inVariables><int>...</int>...</inVariables>
+     <outVariables><int>...</int>...</outVariables>
      <groups></groups>
    </Minsky>
    ```
 
 **Layout:**
 - `startX = 0`, `startY = 0`
-- Vertical spacing: `spacingY = 80` pixels between rows
-- Tensor variable centered vertically
-- SelectedScenario positioned 100 pixels above startY
+- Vertical spacing: `spacingY = 80` pixels between parameter rows
+- Input variables positioned at `x = 0` (left), centered vertically for tensor
+- Add operation at `x = 150, y = -140`
+- Index variables at `x = 200`
+- First gather (parameter selection) at `x = 400`
+- Second gather (scenario selection) at `x = 600`
+- Output variables at `x = 800` (right)
+- ScenarioOffset positioned at `y = -180`, SelectedScenario at `y = -100`
+
+**Dynamic Axis Names:**
+The gather operations now use the actual axis names from the tensor's hypercube structure, allowing the system to work with tensors that have different dimension naming conventions (not just hardcoded `'name'` and `'attribute'`).
 
 #### `createVariableItem(name, x, y, type, init, tooltip): { id, ports }`
 
@@ -237,7 +281,7 @@ Creates a gather operation item XML snippet.
 **Parameters:**
 - `x: number` - X coordinate
 - `y: number` - Y coordinate
-- `axis: 'name'|'attribute'` - Gather axis type
+- `axis: string` - Gather axis name (dynamically determined from tensor, e.g., `'name'`, `'attribute'`)
 
 **Returns:**
 Object with `id` (item ID) and `ports` (array of 3 port IDs)
@@ -251,7 +295,31 @@ Object with `id` (item ID) and `ports` (array of 3 port IDs)
 - `id`, `type` (`Operation:gather`), `x`, `y`
 - `zoomFactor`, `rotation`, `width`, `height`
 - `ports` (3 ports: output, data input, index input)
-- `axis` (`name` or `attribute`)
+- `axis` (dynamic value from tensor's xvector names)
+
+#### `createAddOperation(x, y): { id, ports }`
+
+Creates an add operation (binary sum) for computing adjusted scenario index.
+
+**Parameters:**
+- `x: number` - X coordinate
+- `y: number` - Y coordinate
+
+**Returns:**
+Object with `id` (item ID) and `ports` (array of 3 port IDs)
+
+**Port Structure:**
+- Port 0: Output (sum)
+- Port 1: Input (first operand)
+- Port 2: Input (second operand)
+
+**Purpose:**
+Used to calculate: `Actual Scenario Index = SelectedScenario + ScenarioOffset`
+
+**XML Fields:**
+- `id`, `type` (`Operation:add`), `x`, `y`
+- `zoomFactor`, `rotation`, `width`, `height`
+- `ports` (3 ports: output, input1, input2)
 
 #### `addWire(fromPort, toPort): void`
 
@@ -326,10 +394,12 @@ Reads the structure of a tensor variable from its hypercube.
 **TensorMetadata Interface:**
 ```typescript
 {
-    paramNames: string[];      // Column names (xvectors[0].slices)
-    scenarioNames: string[];    // Row names (xvectors[1].slices)
-    numParams: number;         // Count of parameters
-    numScenarios: number;       // Count of scenarios
+    paramNames: string[];         // Column names (xvectors[0].slices)
+    scenarioNames: string[];      // Row names (xvectors[1].slices)
+    numParams: number;            // Count of parameters
+    numScenarios: number;         // Count of scenarios (total, including metadata rows)
+    paramAxisName: string;        // Actual axis name for parameters (xvectors[0].name)
+    scenarioAxisName: string;     // Actual axis name for scenarios (xvectors[1].name)
 }
 ```
 
@@ -338,8 +408,10 @@ Reads the structure of a tensor variable from its hypercube.
 2. Accesses `hypercube()` method
 3. Extracts `xvectors[0].slices` as parameter names (columns)
 4. Extracts `xvectors[1].slices` as scenario names (rows)
-5. Validates that both arrays have length > 0
-6. Returns metadata object
+5. Extracts `xvectors[0].name` as the parameter axis name (critical for gather operations)
+6. Extracts `xvectors[1].name` as the scenario axis name (critical for gather operations)
+7. Validates that both arrays have length > 0
+8. Returns metadata object with axis names
 
 **Errors:**
 - Variable not found
@@ -450,12 +522,34 @@ Called from renderer process via `electron.invoke('delete-file', filePath)`
 
 ## Usage Workflow
 
-### Step 1: Prepare Tensor Variable
+### Step 1: Prepare Tensor Variable (CSV Structure Best Practices)
 
-1. Import CSV data or manually create a tensor variable
-2. Ensure the tensor has:
+**Best Practice: Scenario-Specific CSVs**
+
+Create separate CSV files for different scenario sets. Each CSV should contain **only the parameters that vary by scenario**:
+
+```csv
+name,type,units,description,init,CON,OPT,IDL
+InnovationRateMicro,parameter,1/year,...,,0.02,0.04,0.06
+ImitationRateMicro,parameter,1/year,...,,0.025,0.05,0.1
+PopulationSize,parameter,people,...,1000000
+TimeHorizon,constant,years,...,50
+```
+
+**Important Notes:**
+- Metadata rows (type, units, description, init) are included in the "attribute" dimension
+- The system automatically calculates `ScenarioOffset` to skip metadata columns
+- For this example with 4 metadata columns + 3 scenarios: offset = 4
+- When `SelectedScenario=0`, it maps to `Actual Index = 0 + 4 = 4` (the CON column)
+- Parameters that don't vary by scenario should use a separate "parameters-global.csv" (loaded separately)
+
+**Import Instructions:**
+1. Import CSV via Minsky's CSV import feature
+2. Ensure it creates a tensor variable with proper hypercube structure
+3. Verify the tensor has:
    - Column names (parameter names) in `xvectors[0].slices`
-   - Row names (scenario/attribute names) in `xvectors[1].slices`
+   - Row names (metadata + scenario names) in `xvectors[1].slices`
+   - Proper axis names in `xvectors[0].name` and `xvectors[1].name`
 
 ### Step 2: Open Wiring Dialog
 
@@ -482,27 +576,35 @@ Called from renderer process via `electron.invoke('delete-file', filePath)`
 
 ### Step 5: Generated Infrastructure
 
-The system creates:
+The system creates a self-contained group with inputs on the left boundary and outputs on the right:
 
-- **Input Variables:**
-  - `:SelectedScenario` - Parameter for selecting scenario index (0 to N-1)
-  - `:{tensorName}` - Reference to the original tensor
+**Input Variables (Group Boundaries - Left Side):**
+- `:ScenarioTensor` - The source tensor containing all parameter data
+- `:SelectedScenario` - User-controlled scenario selector (0 to N-1, simple 0-based index)
+- `:ScenarioOffset` - Automatically calculated offset (internally used, pre-set to the correct value)
 
-- **For Each Parameter:**
-  - `:idx_{ParamName}` - Index constant (column index in tensor)
-  - Two gather operations (name axis, attribute axis)
-  - `:{ParamName}` - Flow variable (output with input port)
+**Internal Operations (For Each Parameter):**
+- `:idx_{ParamName}` - Index constant matching the parameter's column position in the tensor
+- First `gather` operation (axis: parameter axis) - Selects the parameter's row
+- Second `gather` operation (axis: scenario axis) - Selects the scenario's value
+- One `add` operation (shared) - Computes `SelectedScenario + ScenarioOffset` for correct column indexing
 
-- **Wiring:**
-  - Complete wiring diagram connecting all elements
-  - All items grouped together for easy positioning
+**Output Variables (Group Boundaries - Right Side):**
+- `:{ParamName}` - Flow variable containing the extracted parameter value (one per parameter)
+
+**Wiring:** Complete data flow from tensor through gather operations to parameter outputs, with offset-adjusted scenario indexing
 
 ### Step 6: Use the Infrastructure
 
 1. The generated group appears on the canvas
-2. Set `SelectedScenario` to the desired scenario index (0, 1, 2, ...)
-3. Each parameter variable (`ParamName`) will contain the value for that scenario
-4. Connect parameter variables to other parts of your model as needed
+2. The `ScenarioTensor` input expects the tensor variable to be connected (or pre-populated)
+3. Set `SelectedScenario` to the desired scenario index:
+   - `0` = first scenario in your list
+   - `1` = second scenario
+   - etc.
+4. The `ScenarioOffset` is pre-calculated and typically doesn't need manual adjustment
+5. Each parameter variable (`:{ParamName}`) on the right boundary contains the extracted value
+6. Connect parameter variables to other parts of your model as needed
 
 ## Technical Details
 
@@ -515,6 +617,19 @@ The generated XML follows Minsky's schema version 3 format:
 - All required fields for items (id, type, x, y, zoomFactor, rotation, width, height)
 - Proper port structure for each item type
 - XML escaping for names and values
+- **Group Boundaries:** Uses `<inVariables>` and `<outVariables>` sections to define group inputs/outputs:
+  ```xml
+  <inVariables>
+    <int>0</int>  <!-- ScenarioTensor ID -->
+    <int>2</int>  <!-- SelectedScenario ID -->
+    <int>4</int>  <!-- ScenarioOffset ID -->
+  </inVariables>
+  <outVariables>
+    <int>14</int> <!-- InnovationRateMicro ID -->
+    <int>27</int> <!-- ImitationRateMicro ID -->
+    <!-- ... one for each parameter ... -->
+  </outVariables>
+  ```
 
 ### Port Ordering
 

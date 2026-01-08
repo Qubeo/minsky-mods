@@ -1,10 +1,5 @@
 import { Injectable } from '@angular/core';
 
-interface PortRef {
-  itemId: number;
-  portId: number;
-}
-
 @Injectable({ providedIn: 'root' })
 export class ScenarioMkyGeneratorService {
   private idCounter = 1;
