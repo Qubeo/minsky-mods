@@ -1,0 +1,37 @@
+{
+  "compileOnSave": false,
+  "compilerOptions": {
+    "baseUrl": ".",
+    "outDir": "./dist/out-tsc",
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,
+    "noImplicitOverride": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "sourceMap": true,
+    "declaration": false,
+    "downlevelIteration": true,
+    "experimentalDecorators": true,
+    "moduleResolution": "node",
+    "importHelpers": true,
+    "target": "ES2022",
+    "module": "ES2022",
+    "useDefineForClassFields": false,
+    "lib": ["ES2022", "dom"],
+    "paths": {
+      "@minsky/*": ["../../../gui-js/libs/*/src/index.ts"],
+      "@minsky/shared": ["../../../gui-js/libs/shared/src/index.ts"],
+      "@minsky/core": ["../../../gui-js/libs/core/src/index.ts"],
+      "@minsky/menu": ["../../../gui-js/libs/menu/src/index.ts"],
+      "@minsky/ui-components": ["../../../gui-js/libs/ui-components/src/index.ts"],
+      "@minsky/minsky-server": ["../../../gui-js/libs/minsky-server/src/index.ts"]
+    }
+  },
+  "angularCompilerOptions": {
+    "enableI18nLegacyMessageIdFormat": false,
+    "strictInjectionParameters": true,
+    "strictInputAccessModifiers": true,
+    "strictTemplates": true
+  }
+}

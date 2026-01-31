@@ -20,11 +20,9 @@ export class CsvExportService {
     const keys = await this.electronService.minsky.variableValues.keys();
     const rows: MinskyMetadataRow[] = [];
 
-    const userKeys = keys.filter(k => !k.startsWith('constant:'));
-
     const batchSize = 50;
-    for (let i = 0; i < userKeys.length; i += batchSize) {
-      const batch = userKeys.slice(i, i + batchSize);
+    for (let i = 0; i < keys.length; i += batchSize) {
+      const batch = keys.slice(i, i + batchSize);
       const batchResults = await Promise.all(
         batch.map(async (key) => {
           try {

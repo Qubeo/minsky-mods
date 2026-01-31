@@ -14,8 +14,8 @@
       { "id": "scenario-grower.wire", "route": "wire-scenario", "window": { "width": 700, "height": 700, "title": "Wire Scenario Parameters" } }
     ],
     "routes": [
-      { "path": "grow-scenario", "module": "ScenarioGrowerModule" },
-      { "path": "wire-scenario", "module": "ScenarioWiringModule" }
+      { "path": "grow-scenario", "module": "ScenarioGrowerModule", "file": "src/lib/scenario-grower.module" },
+      { "path": "wire-scenario", "module": "ScenarioWiringModule", "file": "src/lib/scenario-wiring.module" }
     ],
     "ipc": [
       { "channel": "read-file-text" },
