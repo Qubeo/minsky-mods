@@ -9,21 +9,21 @@ External mods for extending Minsky's functionality.
 
 ## Installation (into Minsky)
 ```bash
-cd /path/to/minsky/modding/tools
-node install-mod.js /path/to/this-repo/scenario-grower
+cd ../modding
+bun tools/install-mod.js ../mods/scenario-grower
 ```
 
 ## Development
 ```bash
 # Link node_modules to Minsky's (one-time)
-ln -sf /path/to/minsky/gui-js/node_modules node_modules
+ln -sf ../minsky/gui-js/node_modules node_modules
 
 # After making changes, re-install the mod
-cd /path/to/minsky/modding/tools
-node install-mod.js /path/to/this-repo/my-mod
+cd ../modding
+bun tools/install-mod.js ../mods/my-mod
 
 # Test in Minsky
-cd /path/to/minsky/gui-js
+cd ../minsky/gui-js
 bun start
 ```
 

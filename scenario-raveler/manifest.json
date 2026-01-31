@@ -1,0 +1,26 @@
+{
+  "id": "scenario-raveler",
+  "name": "Scenario Raveler",
+  "version": "2.0.0",
+  "contributes": {
+    "menus": {
+      "items": [
+        { "menu": "simulation", "label": "Ravel Scenario Infrastructure...", "command": "scenario-raveler.ravel" },
+        { "menu": "simulation", "label": "Wire Scenario Parameters...", "command": "scenario-raveler.wire" }
+      ]
+    },
+    "commands": [
+      { "id": "scenario-raveler.ravel", "route": "ravel-scenario", "window": { "width": 800, "height": 600, "title": "Ravel Scenario Infrastructure" } },
+      { "id": "scenario-raveler.wire", "route": "wire-scenario", "window": { "width": 700, "height": 700, "title": "Wire Scenario Parameters" } }
+    ],
+    "routes": [
+      { "path": "ravel-scenario", "module": "ScenarioRavelerModule" },
+      { "path": "wire-scenario", "module": "ScenarioWiringModule" }
+    ],
+    "ipc": [
+      { "channel": "read-file-text" },
+      { "channel": "write-temp-file" },
+      { "channel": "delete-file" }
+    ]
+  }
+}
