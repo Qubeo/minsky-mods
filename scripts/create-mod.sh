@@ -187,7 +187,7 @@ Install this mod into Minsky:
 
 \`\`\`bash
 cd /path/to/minsky/modding/tools
-node install-mod.js /path/to/minsky-mods/$MOD_NAME
+bun install-mod.js /path/to/minsky-mods/$MOD_NAME
 \`\`\`
 
 Then rebuild/restart Minsky:
@@ -214,7 +214,7 @@ After making changes, reinstall:
 
 \`\`\`bash
 cd /path/to/minsky/modding/tools
-node install-mod.js /path/to/minsky-mods/$MOD_NAME
+bun install-mod.js /path/to/minsky-mods/$MOD_NAME
 \`\`\`
 
 Then restart Minsky to see your changes.
@@ -230,6 +230,6 @@ echo "   1. Edit $MOD_NAME/src/lib/$MOD_NAME.component.ts"
 echo "   2. Add your UI to $MOD_NAME/src/lib/$MOD_NAME.component.html"
 echo "   3. Install into Minsky:"
 echo "      cd /path/to/minsky/modding/tools"
-echo "      node install-mod.js $REPO_ROOT/$MOD_NAME"
+echo "      bun install-mod.js $REPO_ROOT/$MOD_NAME"
 echo ""
 echo "📖 See docs/MOD_CREATION_WORKFLOW.md for full documentation"

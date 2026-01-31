@@ -223,7 +223,7 @@ Install this mod into Minsky:
 
 \`\`\`bash
 cd /path/to/minsky/modding/tools
-node install-mod.js /path/to/minsky-mods/my-new-mod
+bun install-mod.js /path/to/minsky-mods/my-new-mod
 \`\`\`
 
 Then rebuild/restart Minsky:
@@ -249,7 +249,7 @@ bun start
 After making changes, reinstall:
 
 \`\`\`bash
-node install-mod.js /path/to/minsky-mods/my-new-mod
+bun install-mod.js /path/to/minsky-mods/my-new-mod
 \`\`\`
 ```
 
@@ -257,7 +257,7 @@ node install-mod.js /path/to/minsky-mods/my-new-mod
 
 ```bash
 cd /path/to/minsky/modding/tools
-node install-mod.js /path/to/minsky-mods/my-new-mod
+bun install-mod.js /path/to/minsky-mods/my-new-mod
 ```
 
 This will:

@@ -110,7 +110,7 @@ bash scripts/create-mod.sh variable-inspector "Inspect and analyze model variabl
 
 # Install into Minsky
 cd /path/to/minsky/modding/tools
-node install-mod.js /path/to/minsky-mods/variable-inspector
+bun install-mod.js /path/to/minsky-mods/variable-inspector
 
 # Test in Minsky
 cd /path/to/minsky/gui-js
@@ -186,7 +186,7 @@ After creating a mod:
 - [ ] README has correct install instructions
 - [ ] Mod installs without errors:
   ```bash
-  node install-mod.js /path/to/mod
+  bun install-mod.js /path/to/mod
   ```
 - [ ] Minsky builds without errors:
   ```bash
@@ -204,7 +204,7 @@ After creating a mod:
 **Fix:**
 ```bash
 cd /path/to/minsky/modding/tools
-node install-mod.js /path/to/minsky-mods/my-mod
+bun install-mod.js /path/to/minsky-mods/my-mod
 ```
 
 ### Issue: "ERROR in ./src/index.ts - Module not found: 'electron'"
@@ -226,7 +226,7 @@ node install-mod.js /path/to/minsky-mods/my-mod
 **Fix:**
 ```bash
 cd /path/to/minsky/modding/tools
-node install-mod.js /path/to/minsky-mods/my-mod
+bun install-mod.js /path/to/minsky-mods/my-mod
 cd /path/to/minsky/gui-js
 bun start  # Restart Minsky
 ```
@@ -255,7 +255,7 @@ bun start  # Restart Minsky
 3. **Install and test:**
    ```bash
    cd /path/to/minsky/modding/tools
-   node install-mod.js /path/to/minsky-mods/my-first-mod
+   bun install-mod.js /path/to/minsky-mods/my-first-mod
    ```
 
 4. **Read the full guide:**
