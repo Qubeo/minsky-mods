@@ -1,0 +1,35 @@
+{
+  "id": "dashboard",
+  "name": "Dashboard",
+  "version": "1.0.0",
+  "contributes": {
+    "menus": {
+      "items": [
+        {
+          "menu": "simulation",
+          "label": "Dashboard...",
+          "command": "dashboard.open"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "id": "dashboard.open",
+        "route": "dashboard",
+        "window": {
+          "width": 800,
+          "height": 600,
+          "title": "Dashboard"
+        }
+      }
+    ],
+    "routes": [
+      {
+        "path": "dashboard",
+        "module": "DashboardModule",
+        "file": "src/lib/dashboard.module"
+      }
+    ],
+    "ipc": []
+  }
+}
