@@ -1,0 +1,10 @@
+{
+  "name": "@minsky/dashboard-api",
+  "version": "1.0.0",
+  "description": "Minsky Dashboard API server",
+  "private": true,
+  "scripts": {
+    "dev": "bun --watch index.ts",
+    "start": "bun index.ts"
+  }
+}
