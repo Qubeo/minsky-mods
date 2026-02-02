@@ -39,7 +39,7 @@
 
       // Auto-select first few numeric variables
       $selectedVariables = $variables
-        .filter((v) => !isNaN(v.value) && isFinite(v.value))
+        .filter((v) => v.value != null && !isNaN(v.value) && isFinite(v.value))
         .slice(0, 5)
         .map((v) => v.name);
 
@@ -99,6 +99,11 @@
       $selectedVariables = [...$selectedVariables, name];
     }
   }
+
+  // Create display name mapping for chart
+  $: displayNames = Object.fromEntries(
+    $variables.map((v) => [v.name, v.displayName])
+  );
 </script>
 
 <svelte:head>
@@ -153,7 +158,7 @@
       <section class="chart-section">
         <h2>Time Series</h2>
         {#if $history.length > 0}
-          <TimeSeriesChart data={$history} variables={$selectedVariables} height={450} />
+          <TimeSeriesChart data={$history} variables={$selectedVariables} {displayNames} height={450} />
         {:else}
           <div class="placeholder">Run simulation to see time series data</div>
         {/if}
@@ -169,8 +174,9 @@
                 checked={$selectedVariables.includes(v.name)}
                 onchange={() => toggleVariable(v.name)}
               />
-              <span class="var-name" title={v.name}>{v.name.split(':').pop() || v.name}</span>
-              <span class="var-value">{isFinite(v.value) ? v.value.toFixed(4) : 'N/A'}</span>
+              <span class="var-name" title={v.name}>{v.displayName}</span>
+              <span class="var-type">{v.type}</span>
+              <span class="var-value">{v.value != null && isFinite(v.value) ? v.value.toFixed(4) : 'N/A'}</span>
             </label>
           {/each}
         </div>
@@ -379,6 +385,15 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+
+  .var-type {
+    font-size: 0.7rem;
+    padding: 0.1rem 0.3rem;
+    border-radius: 3px;
+    background: #2d2d44;
+    color: #888;
+    text-transform: uppercase;
   }
 
   .var-value {

@@ -1,15 +1,20 @@
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
-  import { createChart, type IChartApi, type ISeriesApi, ColorType, type LineData, type Time } from 'lightweight-charts';
+  import { createChart, LineSeries, type IChartApi, ColorType, type LineData, type Time, type ISeriesApi } from 'lightweight-charts';
   import type { TimeSeriesPoint } from '../api';
 
   export let data: TimeSeriesPoint[] = [];
   export let variables: string[] = [];
+  export let displayNames: Record<string, string> = {};
   export let height = 400;
+
+  function getDisplayName(key: string): string {
+    return displayNames[key] || key.replace(/^:/, '');
+  }
 
   let chartContainer: HTMLDivElement;
   let chart: IChartApi | null = null;
-  let series: Map<string, ISeriesApi<'Line'>> = new Map();
+  let series: Map<string, ISeriesApi<any>> = new Map();
 
   const colors = [
     '#2962FF', '#FF6D00', '#2E7D32', '#C62828', '#6A1B9A',
@@ -71,19 +76,18 @@
       let lineSeries = series.get(varName);
 
       if (!lineSeries) {
-        lineSeries = chart!.addSeries({
-          type: 'Line',
+        lineSeries = chart!.addSeries(LineSeries, {
           color: getColor(i),
           lineWidth: 2,
-          title: varName.split(':').pop() || varName,
+          title: getDisplayName(varName),
         });
         series.set(varName, lineSeries);
       }
 
       // Convert data to lightweight-charts format
-      // Use index as time since we're using simulation time, not real time
-      const lineData: LineData[] = data.map((point, idx) => ({
-        time: idx as Time,
+      // Use actual simulation time from data points
+      const lineData: LineData[] = data.map((point) => ({
+        time: Math.round(point.t * 1000) as Time, // Convert to milliseconds for better precision
         value: point[varName] ?? 0,
       }));
 
@@ -116,7 +120,7 @@
       {#each variables as varName, i}
         <span class="legend-item">
           <span class="legend-color" style="background-color: {getColor(i)}"></span>
-          {varName.split(':').pop() || varName}
+          {getDisplayName(varName)}
         </span>
       {/each}
     </div>

@@ -18,7 +18,7 @@ Mods are installed into your Minsky installation using the mod installer:
 
 ```bash
 cd /path/to/minsky/modding/tools
-node install-mod.js /path/to/minsky-mods/scenario-grower
+bun install-mod.js /path/to/minsky-mods/scenario-grower
 ```
 
 This will:
@@ -107,12 +107,33 @@ export { MyModModule } from './lib/my-mod.module';
 // DO NOT export ipc-handlers here - it would pull Node.js modules into browser bundle
 ```
 
+## Where to Develop (Claude Code Sessions)
+
+**Run Claude from your mod directory** (`~/mods/my-mod/`):
+- Session history stays with the mod
+- Create `CLAUDE.md` to document Minsky backend patterns you discover
+- Access Minsky source with relative paths: `../../minsky-dev/minsky/`
+- Use modding tools: `../../minsky-dev/modding/tools/`
+
+**Example setup:**
+```bash
+cd ~/prog/minsky-dev/mods/my-new-mod
+cat > CLAUDE.md << 'EOF'
+# My Mod
+## Minsky Backend Integration Patterns
+[Document IPC patterns, key files as you explore]
+EOF
+claude chat  # Start session here
+```
+
+**Why:** Knowledge lives with the mod, sessions are portable, clean separation of concerns.
+
 ## Development Workflow
 
 1. Make changes to mod source
 2. Re-run installer to copy updated files:
    ```bash
-   node install-mod.js /path/to/minsky-mods/my-mod
+   bun install-mod.js /path/to/minsky-mods/my-mod
    ```
 3. Rebuild/restart Minsky:
    ```bash

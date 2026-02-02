@@ -77,8 +77,13 @@ export const minsky = {
   /** Get all variable names */
   variableNames(): string[] {
     const keys = callSync('minsky.variableValues.@keys') as string[];
-    // Filter to user-visible variables (exclude internal ones starting with :)
-    return keys.filter(k => !k.startsWith(':'));
+    // Filter out internal wiring variables (numeric prefix like "993733488:0")
+    // Keep: ":Investment", "constant:one", "stock:K", etc.
+    return keys.filter(k => {
+      const prefix = k.split(':')[0];
+      // If prefix is a number, it's internal wiring - filter it out
+      return prefix === '' || isNaN(Number(prefix));
+    });
   },
 
   /** Get variable value by name */
@@ -91,21 +96,44 @@ export const minsky = {
     }
   },
 
+  /** Parse display name from full variable key */
+  parseVarName(key: string): { displayName: string; type: Variable['type'] } {
+    // Patterns:
+    // ":Investment" -> displayName="Investment", type=flow
+    // "constant:one" -> displayName="one", type=constant
+    // "stock:K" -> displayName="K", type=stock
+    // "parameter:rate" -> displayName="rate", type=parameter
+    const colonIdx = key.indexOf(':');
+    if (colonIdx === -1) {
+      return { displayName: key, type: 'flow' };
+    }
+
+    const prefix = key.substring(0, colonIdx);
+    const name = key.substring(colonIdx + 1);
+
+    if (prefix === '') {
+      // ":Name" format - regular variable
+      return { displayName: name, type: 'flow' };
+    }
+
+    // "type:name" format
+    let type: Variable['type'] = 'flow';
+    if (prefix === 'stock') type = 'stock';
+    else if (prefix === 'parameter') type = 'parameter';
+    else if (prefix === 'constant') type = 'constant';
+
+    return { displayName: name, type };
+  },
+
   /** Get all variables with values */
   variables(): Variable[] {
-    const names = this.variableNames();
-    return names.map(name => {
-      // Parse variable type from name prefix
-      let type: Variable['type'] = 'flow';
-      if (name.includes(':')) {
-        const prefix = name.split(':')[0];
-        if (prefix === 'stock') type = 'stock';
-        else if (prefix === 'parameter') type = 'parameter';
-        else if (prefix === 'constant') type = 'constant';
-      }
+    const keys = this.variableNames();
+    return keys.map(key => {
+      const { displayName, type } = this.parseVarName(key);
       return {
-        name,
-        value: this.variableValue(name),
+        name: key,  // Keep full key for API lookups
+        displayName,
+        value: this.variableValue(key),
         type,
       };
     });

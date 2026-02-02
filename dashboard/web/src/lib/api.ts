@@ -3,7 +3,8 @@
 const API_BASE = 'http://localhost:3000';
 
 export interface Variable {
-  name: string;
+  name: string;        // Full key for API lookups (e.g., ":Investment")
+  displayName: string; // Human-readable name (e.g., "Investment")
   value: number;
   type: 'flow' | 'stock' | 'parameter' | 'constant';
 }
