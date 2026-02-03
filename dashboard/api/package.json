@@ -6,5 +6,8 @@
   "scripts": {
     "dev": "bun --watch index.ts",
     "start": "bun index.ts"
+  },
+  "dependencies": {
+    "@minsky-dev/shared-types": "file:../../../packages/shared-types"
   }
 }

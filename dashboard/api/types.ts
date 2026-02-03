@@ -1,33 +1,20 @@
-// Shared types for Minsky Dashboard API
+/**
+ * Minsky Dashboard API Types
+ *
+ * Re-exports from @minsky-dev/shared-types for backwards compatibility.
+ * New code should import directly from @minsky-dev/shared-types.
+ */
 
-export interface Variable {
-  name: string;        // Full key for API lookups (e.g., ":Investment")
-  displayName: string; // Human-readable name (e.g., "Investment")
-  value: number;
-  type: 'flow' | 'stock' | 'parameter' | 'constant';
-}
+// Re-export simulation types
+export {
+  type VariableType,
+  type Variable,
+  type SimulationState,
+  type TimeSeriesPoint,
+  type ModelInfo,
+} from '@minsky-dev/shared-types/simulation';
 
-export interface SimulationState {
-  t: number;
-  running: boolean;
-  stepMin: number;
-  stepMax: number;
-  nSteps: number;
-}
-
-export interface TimeSeriesPoint {
-  t: number;
-  [variable: string]: number;
-}
-
-export interface ModelInfo {
-  path: string;
-  loaded: boolean;
-  variables: string[];
-}
-
-export interface ApiResponse<T = unknown> {
-  success: boolean;
-  data?: T;
-  error?: string;
-}
+// Re-export API types
+export {
+  type ApiResponse,
+} from '@minsky-dev/shared-types/api';

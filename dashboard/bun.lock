@@ -8,11 +8,15 @@
     "api": {
       "name": "@minsky/dashboard-api",
       "version": "1.0.0",
+      "dependencies": {
+        "@minsky-dev/shared-types": "file:../../../packages/shared-types",
+      },
     },
     "web": {
       "name": "web",
       "version": "0.0.1",
       "dependencies": {
+        "@minsky-dev/shared-types": "file:../../../packages/shared-types",
         "lightweight-charts": "^5.1.0",
       },
       "devDependencies": {
@@ -272,6 +276,10 @@
 
     "zimmerframe": ["zimmerframe@1.1.4", "", {}, "sha512-B58NGBEoc8Y9MWWCQGl/gq9xBCe4IiKM0a2x7GZdQKOW5Exr8S1W24J6OgM1njK8xCRGvAJIL/MxXHf6SkmQKQ=="],
 
+    "@minsky/dashboard-api/@minsky-dev/shared-types": ["@minsky-dev/shared-types@file:../../packages/shared-types", { "devDependencies": { "typescript": "^5.3.0" } }],
+
     "@rollup/plugin-commonjs/is-reference": ["is-reference@1.2.1", "", { "dependencies": { "@types/estree": "*" } }, "sha512-U82MsXXiFIrjCK4otLT+o2NA2Cd2g5MLoOVXUZjIOhLurrRxpEXzI8O0KZHr3IjLvlAH1kTPYSuqer5T9ZVBKQ=="],
+
+    "web/@minsky-dev/shared-types": ["@minsky-dev/shared-types@file:../../packages/shared-types", { "devDependencies": { "typescript": "^5.3.0" } }],
   }
 }

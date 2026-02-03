@@ -9,6 +9,9 @@
     "./src/lib/*": "./src/lib/*.ts",
     "./package.json": "./package.json"
   },
+  "dependencies": {
+    "@minsky-dev/shared-types": "file:../../packages/shared-types"
+  },
   "peerDependencies": {
     "@angular/core": ">=17.0.0",
     "@angular/common": ">=17.0.0",

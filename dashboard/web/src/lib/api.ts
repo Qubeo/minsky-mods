@@ -1,32 +1,16 @@
 // API client for Minsky Dashboard
 
+import type {
+  Variable,
+  SimulationState,
+  TimeSeriesPoint,
+  ApiResponse,
+} from '@minsky-dev/shared-types';
+
+// Re-export types for backwards compatibility
+export type { Variable, SimulationState, TimeSeriesPoint };
+
 const API_BASE = 'http://localhost:3000';
-
-export interface Variable {
-  name: string;        // Full key for API lookups (e.g., ":Investment")
-  displayName: string; // Human-readable name (e.g., "Investment")
-  value: number;
-  type: 'flow' | 'stock' | 'parameter' | 'constant';
-}
-
-export interface SimulationState {
-  t: number;
-  running: boolean;
-  stepMin: number;
-  stepMax: number;
-  nSteps: number;
-}
-
-export interface TimeSeriesPoint {
-  t: number;
-  [variable: string]: number;
-}
-
-interface ApiResponse<T> {
-  success: boolean;
-  data?: T;
-  error?: string;
-}
 
 async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, {
